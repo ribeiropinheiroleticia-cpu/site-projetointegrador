@@ -1,1 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Projeto integrador sobre o uso do sensor LDR no aquecimento sustentável e automatizado de uma piscina.">
+  <title>Sensor LDR | Piscina Inteligente</title>
+
+  <style>
+    :root{
+      --bg:#07131a;
+      --bg2:#0c2029;
+      --card:#102b35;
+      --card2:#143844;
+      --text:#eefcff;
+      --muted:#b5ccd2;
+      --primary:#25d7c5;
+      --secondary:#42a5ff;
+      --sun:#ffd166;
+      --danger:#ff6b6b;
+      --shadow:0 18px 45px rgba(0,0,0,.28);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:Arial,Helvetica,sans-serif;
+      background:
+        radial-gradient(circle at 80% 10%, rgba(37,215,197,.14), transparent 28%),
+        radial-gradient(circle at 10% 40%, rgba(66,165,255,.12), transparent 25%),
+        var(--bg);
+      color:var(--text);
+      line-height:1.6;
+    }
+
+    a{color:inherit;text-decoration:none}
+    button,input{font:inherit}
+    button{cursor:pointer}
+
+    .skip{
+      position:absolute;left:-9999px;top:auto;
+    }
+    .skip:focus{
+      left:15px;top:15px;z-index:9999;
+      background:#fff;color:#000;padding:10px 15px;border-radius:8px;
+    }
+
+    header{
+      position:sticky;top:0;z-index:1000;
+      backdrop-filter:blur(15px);
+      background:rgba(7,19,26,.88);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+
+    nav{
+      max-width:1180px;margin:auto;padding:15px 20px;
+      display:flex;align-items:center;justify-content:space-between;gap:20px;
+    }
+
+    .logo{
+      display:flex;align-items:center;gap:10px;font-weight:800;
+      font-size:1.05rem;
+    }
+    .logo-icon{
+      width:40px;height:40px;border-radius:12px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      color:#041217;font-size:1.2rem;
+    }
+
+    nav ul{display:flex;gap:7px;list-style:none;flex-wrap:wrap}
+    nav a{
+      display:block;padding:9px 12px;border-radius:10px;
+      color:var(--muted);font-size:.9rem;font-weight:700;
+    }
+    nav a:hover,nav a:focus{background:rgba(37,215,197,.12);color:var(--primary)}
+
+    .hero{
+      max-width:1180px;margin:auto;padding:85px 20px 65px;
+      display:grid;grid-template-columns:1.15fr .85fr;gap:50px;align-items:center;
+    }
+
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid rgba(37,215,197,.3);
+      color:var(--primary);background:rgba(37,215,197,.08);
+      border-radius:999px;padding:7px 13px;font-size:.82rem;font-weight:800;
+      margin-bottom:20px;
+    }
+
+    h1{
+      font-size:clamp(2.5rem,6vw,5rem);
+      line-height:.98;margin-bottom:22px;
+      letter-spacing:-2px;
+    }
+    h1 span{
+      background:linear-gradient(90deg,var(--primary),var(--secondary));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+    .hero p{color:var(--muted);font-size:1.08rem;max-width:650px}
+    .buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+    .btn{
+      border:0;border-radius:13px;padding:13px 18px;font-weight:800;
+      transition:.2s;display:inline-flex;align-items:center;gap:8px;
+    }
+    .btn.primary{background:var(--primary);color:#052024}
+    .btn.secondary{background:rgba(255,255,255,.07);color:var(--text);border:1px solid rgba(255,255,255,.12)}
+    .btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+
+    .hero-visual{
+      min-height:370px;position:relative;display:grid;place-items:center;
+    }
+    .orb{
+      width:250px;height:250px;border-radius:50%;
+      background:radial-gradient(circle at 35% 30%,#fff7bf,#ffd166 25%,#ff9e3d 55%,#ef6535 78%);
+      box-shadow:0 0 70px rgba(255,209,102,.38);
+      position:relative;
+      animation:pulse 3s ease-in-out infinite;
+    }
+    .orb:after{
+      content:"";position:absolute;inset:25px;border-radius:50%;
+      border:2px dashed rgba(255,255,255,.45);
+    }
+    .sensor-card{
+      position:absolute;bottom:20px;left:10px;
+      background:rgba(16,43,53,.92);border:1px solid rgba(255,255,255,.1);
+      padding:18px;border-radius:18px;box-shadow:var(--shadow);
+      width:230px;
+    }
+    .sensor-card strong{display:block;font-size:1.7rem;color:var(--primary)}
+    .mini-pool{
+      position:absolute;right:0;top:30px;width:190px;height:110px;
+      border-radius:50%;background:linear-gradient(#4ed9e9,#167db3);
+      border:7px solid #8feaf2;box-shadow:0 15px 40px rgba(24,177,212,.2);
+    }
+
+    section{padding:70px 20px}
+    .container{max-width:1180px;margin:auto}
+    .section-title{margin-bottom:35px}
+    .eyebrow{color:var(--primary);font-size:.8rem;font-weight:900;text-transform:uppercase;letter-spacing:1.5px}
+    h2{font-size:clamp(1.9rem,4vw,3rem);margin:6px 0 10px}
+    .section-title p{color:var(--muted);max-width:760px}
+
+    .grid{display:grid;gap:18px}
+    .grid-3{grid-template-columns:repeat(3,1fr)}
+    .grid-2{grid-template-columns:repeat(2,1fr)}
+
+    .card{
+      background:linear-gradient(145deg,rgba(20,56,68,.92),rgba(12,32,41,.92));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);padding:25px;box-shadow:var(--shadow);
+    }
+    .card h3{margin:10px 0 8px}
+    .card p{color:var(--muted)}
+    .icon{
+      width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
+      background:rgba(37,215,197,.12);font-size:1.35rem;
+    }
+
+    .concept{
+      display:grid;grid-template-columns:1fr 1fr;gap:25px;align-items:stretch;
+    }
+    .formula{
+      background:#061117;border-radius:16px;padding:18px;margin-top:15px;
+      border:1px solid rgba(37,215,197,.2);font-family:monospace;color:#d7fff9;
+    }
+
+    .spectrum{
+      display:flex;height:65px;border-radius:14px;overflow:hidden;margin-top:18px;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .spectrum span{flex:1}
+    .violet{background:#7b2cff}.blue{background:#2674ff}.green{background:#26c65c}
+    .yellow{background:#ffd43b}.orange{background:#ff9f43}.red{background:#e84b4b}
+
+    .comparison{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;min-width:620px}
+    th,td{padding:14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.1)}
+    th{color:var(--primary)}
+    td{color:var(--muted)}
+
+    /* Simulador */
+    .simulator{
+      display:grid;grid-template-columns:1fr 1fr;gap:25px;
+    }
+    .control label{display:flex;justify-content:space-between;gap:10px;font-weight:800;margin-bottom:10px}
+    input[type=range]{width:100%;accent-color:var(--primary)}
+    .range-value{color:var(--primary)}
+    .status{
+      padding:15px;border-radius:14px;margin-top:18px;font-weight:800;
+      background:rgba(37,215,197,.1);border:1px solid rgba(37,215,197,.2);
+    }
+    .status.warning{background:rgba(255,209,102,.1);border-color:rgba(255,209,102,.3);color:var(--sun)}
+    .status.alert{background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.3);color:#ff9696}
+
+    .pool{
+      height:280px;border-radius:50% 50% 24px 24px;
+      background:linear-gradient(180deg,#54dff0,#167db3);
+      position:relative;overflow:hidden;border:8px solid #9ceef4;
+      box-shadow:inset 0 0 40px rgba(255,255,255,.15),0 25px 50px rgba(0,0,0,.25);
+    }
+    .wave{
+      position:absolute;left:-5%;width:110%;height:45px;border-radius:50%;
+      background:rgba(255,255,255,.12);animation:wave 4s linear infinite;
+    }
+    .wave.one{top:65px}.wave.two{top:145px;animation-delay:-2s}
+    .water-temp{
+      position:absolute;inset:0;display:grid;place-items:center;
+      font-size:3rem;font-weight:900;text-shadow:0 3px 15px rgba(0,0,0,.25)
+    }
+    .sun-rays{
+      text-align:center;font-size:3rem;margin-bottom:5px;
+      filter:drop-shadow(0 0 15px rgba(255,209,102,.5));
+    }
+
+    .flow{
+      display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:center;
+      margin-top:15px;
+    }
+    .flow-item{
+      text-align:center;padding:18px 8px;border-radius:15px;
+      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+      font-weight:800;font-size:.9rem;
+    }
+    .arrow{text-align:center;color:var(--primary);font-size:1.5rem}
+
+    .accessibility{
+      border-left:4px solid var(--primary);
+      padding:18px 20px;background:rgba(37,215,197,.07);border-radius:0 15px 15px 0;
+    }
+
+    footer{
+      padding:40px 20px;background:#040d12;border-top:1px solid rgba(255,255,255,.08);
+      color:var(--muted);text-align:center;
+    }
+    footer strong{color:var(--text)}
+
+    .top{
+      position:fixed;right:18px;bottom:18px;width:45px;height:45px;
+      border-radius:50%;border:0;background:var(--primary);color:#041217;font-weight:900;
+      opacity:0;pointer-events:none;transition:.2s;z-index:999;
+    }
+    .top.show{opacity:1;pointer-events:auto}
+
+    @keyframes pulse{50%{transform:scale(1.04)}}
+    @keyframes wave{0%{transform:translateX(-4%)}50%{transform:translateX(4%)}100%{transform:translateX(-4%)}}
+
+    @media(max-width:850px){
+      nav{align-items:flex-start}
+      nav ul{display:none}
+      .hero,.concept,.simulator{grid-template-columns:1fr}
+      .hero{padding-top:55px}
+      .grid-3{grid-template-columns:1fr}
+      .grid-2{grid-template-columns:1fr}
+      .hero-visual{min-height:330px}
+      .flow{grid-template-columns:1fr}
+      .arrow{transform:rotate(90deg)}
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}
+    }
+
+    .high-contrast{
+      --bg:#000;--bg2:#000;--card:#111;--card2:#171717;
+      --text:#fff;--muted:#f0f0f0;--primary:#00ffff;--secondary:#ffff00;
+    }
+    .access-tools{
+      position:fixed;left:15px;bottom:15px;z-index:998;
+      display:flex;gap:6px;
+    }
+    .access-tools button{
+      border:1px solid rgba(255,255,255,.25);background:#102b35;color:white;
+      width:40px;height:40px;border-radius:10px;font-weight:900;
+    }
+  </style>
+</head>
+
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo principal</a>
+
+  <header>
+    <nav aria-label="Navegação principal">
+      <a class="logo" href="#inicio">
+        <span class="logo-icon" aria-hidden="true">☀</span>
+        <span>Sensor LDR</span>
+      </a>
+      <ul>
+        <li><a href="#sobre">O que é</a></li>
+        <li><a href="#optica">Óptica</a></li>
+        <li><a href="#automacao">Automação</a></li>
+        <li><a href="#simulador">Simulador</a></li>
+        <li><a href="#impacto">Impacto</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero" id="inicio">
+      <div>
+        <div class="badge">⚡ PROJETO INTEGRADOR • PISCINA INTELIGENTE</div>
+        <h1>Controle de luz com <span>Sensor LDR</span></h1>
+        <p>
+          Uma solução conceitual para automatizar o aquecimento sustentável de uma piscina,
+          usando a intensidade da luz para tomar decisões de forma inteligente.
+        </p>
+        <div class="buttons">
+          <a class="btn primary" href="#simulador">▶ Testar o simulador</a>
+          <a class="btn secondary" href="#automacao">Ver funcionamento ↓</a>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="Ilustração de um sistema solar com sensor LDR">
+        <div class="orb" aria-hidden="true"></div>
+        <div class="mini-pool" aria-hidden="true"></div>
+        <div class="sensor-card">
+          <small>LEITURA DO LDR</small>
+          <strong id="heroLdr">75%</strong>
+          <span id="heroText">Alta luminosidade</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="sobre">
+      <div class="container">
+        <div class="section-title">
+          <div class="eyebrow">01 • Conceito</div>
+          <h2>O que é um sensor LDR?</h2>
+          <p>Entenda de maneira simples como esse componente pode ajudar uma piscina automatizada.</p>
+        </div>
+
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="icon" aria-hidden="true">👁️</div>
+            <h3>Detecta luz</h3>
+            <p>O LDR é um resistor cuja resistência elétrica varia de acordo com a quantidade de luz que recebe.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">⚙️</div>
+            <h3>Gera uma decisão</h3>
+            <p>Um microcontrolador pode interpretar a leitura e decidir quando ligar ou desligar equipamentos.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">🌱</div>
+            <h3>Favorece eficiência</h3>
+            <p>O sistema pode priorizar o uso da energia solar quando há iluminação suficiente, reduzindo desperdícios.</p>
+          </article>
+        </div>
+
+        <div class="concept" style="margin-top:25px">
+          <article class="card">
+            <h3>Como funciona?</h3>
+            <p>
+              Em geral, quando a intensidade luminosa aumenta, a resistência do LDR diminui.
+              Um circuito pode transformar essa variação em um sinal que o controlador consegue interpretar.
+            </p>
+            <div class="formula" aria-label="Relação simplificada">
+              Mais luz → menor resistência<br>
+              Menos luz → maior resistência
+            </div>
+          </article>
+
+          <article class="card">
+            <h3>Onde ele entra na piscina?</h3>
+            <p>
+              O LDR pode ser instalado em uma posição que receba luz solar e enviar a leitura
+              para o controlador. O controlador então aciona relés, bombas ou outros atuadores
+              conforme as regras programadas.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="optica">
+      <div class="container">
+        <div class="section-title">
+          <div class="eyebrow">02 • Física</div>
+          <h2>Óptica aplicada ao projeto</h2>
+          <p>A luz do Sol interage com os materiais e pode ser aproveitada para aquecimento e geração de energia.</p>
+        </div>
+
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="icon">☀️</div>
+            <h3>Absorção</h3>
+            <p>Materiais escuros tendem a absorver mais radiação visível do que materiais claros. Essa característica pode ser aproveitada em coletores solares.</p>
+          </article>
+          <article class="card">
+            <div class="icon">↩️</div>
+            <h3>Reflexão</h3>
+            <p>Superfícies claras e brilhantes podem refletir uma parcela maior da luz. O acabamento do material influencia a quantidade de energia absorvida.</p>
+          </article>
+          <article class="card">
+            <div class="icon">🔍</div>
+            <h3>Refração</h3>
+            <p>Quando a luz passa de um meio para outro, sua direção pode mudar. Isso ocorre, por exemplo, quando a luz atravessa água ou vidro.</p>
+          </article>
+        </div>
+
+        <article class="card" style="margin-top:20px">
+          <h3>Cor e eficiência: uma aplicação prática</h3>
+          <p>
+            O comportamento da luz ajuda a explicar por que a escolha de cores e materiais é importante.
+            Um coletor com superfície adequada pode absorver mais radiação e transformar parte dessa energia
+            em calor. O LDR, por sua vez, permite medir a intensidade luminosa para que o sistema tome decisões.
+          </p>
+          <div class="spectrum" aria-label="Representação simplificada do espectro de cores">
+            <span class="violet"></span><span class="blue"></span><span class="green"></span>
+            <span class="yellow"></span><span class="orange"></span><span class="red"></span>
+          </div>
+          <small style="display:block;color:var(--muted);margin-top:8px">Representação visual das cores da luz visível.</small>
+        </article>
+
+        <div class="comparison" style="margin-top:20px">
+          <table>
+            <thead>
+              <tr>
+                <th>Material/superfície</th>
+                <th>Comportamento da luz</th>
+                <th>Aplicação no projeto</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Superfície escura</td>
+                <td>Maior absorção de radiação visível</td>
+                <td>Favorecer a captação de calor</td>
+              </tr>
+              <tr>
+                <td>Superfície clara</td>
+                <td>Maior reflexão em comparação com uma superfície escura</td>
+                <td>Reduzir absorção em regiões que não devem aquecer</td>
+              </tr>
+              <tr>
+                <td>Vidro transparente</td>
+                <td>Permite a passagem de parte da luz e pode ocorrer reflexão/refração</td>
+                <td>Proteção e cobertura de coletores</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="automacao">
+      <div class="container">
+        <div class="section-title">
+          <div class="eyebrow">03 • Robótica e programação</div>
+          <h2>Como o sistema automatiza a piscina?</h2>
+          <p>O LDR é o sensor. O microcontrolador interpreta o sinal e os atuadores executam as ações.</p>
+        </div>
+
+        <article class="card">
+          <div class="flow" aria-label="Fluxo do sistema de automação">
+            <div class="flow-item">☀️<br>Luz solar</div>
+            <div class="arrow">→</div>
+            <div class="flow-item">👁️<br>Sensor LDR</div>
+            <div class="arrow">→</div>
+            <div class="flow-item">🧠<br>Controlador</div>
+          </div>
+          <div class="flow" aria-label="Continuação do fluxo">
+            <div class="flow-item">📊<br>Leitura</div>
+            <div class="arrow">→</div>
+            <div class="flow-item">⚙️<br>Relé/atuador</div>
+            <div class="arrow">→</div>
+            <div class="flow-item">💧<br>Aquecimento</div>
+          </div>
+        </article>
+
+        <div class="grid grid-2" style="margin-top:20px">
+          <article class="card">
+            <h3>Exemplo de lógica</h3>
+            <p>
+              Se a luminosidade estiver alta e a temperatura da água estiver abaixo da meta,
+              o controlador pode permitir o funcionamento do sistema de aquecimento.
+              Se a luminosidade cair ou a temperatura atingir a meta, o sistema pode reduzir ou interromper o aquecimento.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Componentes possíveis</h3>
+            <p>
+              Sensor LDR, microcontrolador (como Arduino/ESP32), sensor de temperatura,
+              módulo relé, bomba de circulação e sistema de aquecimento/placa coletora.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="simulador">
+      <div class="container">
+        <div class="section-title">
+          <div class="eyebrow">04 • Interatividade</div>
+          <h2>Simulador do Sensor LDR</h2>
+          <p>Altere a luminosidade e a temperatura para observar como uma regra de automação pode responder.</p>
+        </div>
+
+        <div class="simulator">
+          <div class="card">
+            <div class="sun-rays" id="sunIcon" aria-hidden="true">☀️</div>
+
+            <div class="control">
+              <label for="light">
+                <span>Intensidade da luz</span>
+                <span class="range-value"><span id="lightValue">75</span>%</span>
+              </label>
+              <input id="light" type="range" min="0" max="100" value="75"
+                     aria-label="Intensidade da luz em porcentagem">
+            </div>
+
+            <div class="control" style="margin-top:25px">
+              <label for="temp">
+                <span>Temperatura da água</span>
+                <span class="range-value"><span id="tempValue">28</span> °C</span>
+              </label>
+              <input id="temp" type="range" min="15" max="40" value="28"
+                     aria-label="Temperatura da água em graus Celsius">
+            </div>
+
+            <div class="control" style="margin-top:25px">
+              <label for="target">
+                <span>Temperatura desejada</span>
+                <span class="range-value"><span id="targetValue">30</span> °C</span>
+              </label>
+              <input id="target" type="range" min="20" max="35" value="30"
+                     aria-label="Temperatura desejada em graus Celsius">
+            </div>
+
+            <div id="status" class="status" role="status" aria-live="polite">
+              Sistema ativo: boa luminosidade para aproveitar a energia solar.
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="pool" aria-label="Representação visual da piscina">
+              <div class="wave one"></div>
+              <div class="wave two"></div>
+              <div class="water-temp"><span id="poolTemp">28°C</span></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:10px;margin-top:18px">
+              <div><small style="color:var(--muted)">LDR</small><br><strong id="ldrState">75%</strong></div>
+              <div style="text-align:right"><small style="color:var(--muted)">Atuador</small><br><strong id="actuator">AQUECENDO</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="impacto">
+      <div class="container">
+        <div class="section-title">
+          <div class="eyebrow">05 • Inovação e impacto social</div>
+          <h2>Sustentabilidade + inclusão</h2>
+          <p>A proposta busca utilizar tecnologia para melhorar a eficiência e tornar o uso da piscina mais consciente.</p>
+        </div>
+
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="icon">🌎</div>
+            <h3>Sustentabilidade</h3>
+            <p>O controle automático pode evitar funcionamento desnecessário e priorizar condições favoráveis ao aproveitamento da energia solar.</p>
+          </article>
+          <article class="card">
+            <div class="icon">♿</div>
+            <h3>Acessibilidade</h3>
+            <p>Automatizar etapas do aquecimento pode facilitar o controle do sistema. A piscina também deve considerar acessibilidade física para os usuários.</p>
+          </article>
+          <article class="card">
+            <div class="icon">💡</div>
+            <h3>Educação</h3>
+            <p>O projeto conecta Física, programação, robótica e sustentabilidade em uma aplicação prática próxima da realidade escolar.</p>
+          </article>
+        </div>
+
+        <div class="accessibility" style="margin-top:25px">
+          <strong>♿ Acessibilidade digital:</strong>
+          este site utiliza contraste adequado, textos claros, navegação por seções,
+          elementos com rótulos e suporte a navegação por teclado. Use os controles no canto inferior
+          para aumentar/diminuir o texto ou ativar alto contraste.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><strong>Sensor LDR • Piscina Inteligente</strong></p>
+    <p>Projeto Integrador — Física, Tecnologia, Robótica e Sustentabilidade.</p>
+    <p style="margin-top:8px;font-size:.85rem">Site conceitual desenvolvido para apresentação escolar.</p>
+  </footer>
+
+  <div class="access-tools" aria-label="Ferramentas de acessibilidade">
+    <button id="fontDown" title="Diminuir texto" aria-label="Diminuir tamanho do texto">A−</button>
+    <button id="fontUp" title="Aumentar texto" aria-label="Aumentar tamanho do texto">A+</button>
+    <button id="contrast" title="Alto contraste" aria-label="Ativar ou desativar alto contraste">◐</button>
+  </div>
+
+  <button class="top" id="topBtn" aria-label="Voltar ao topo">↑</button>
+
+  <script>
+    const light = document.getElementById("light");
+    const temp = document.getElementById("temp");
+    const target = document.getElementById("target");
+
+    const lightValue = document.getElementById("lightValue");
+    const tempValue = document.getElementById("tempValue");
+    const targetValue = document.getElementById("targetValue");
+    const poolTemp = document.getElementById("poolTemp");
+    const ldrState = document.getElementById("ldrState");
+    const actuator = document.getElementById("actuator");
+    const status = document.getElementById("status");
+    const heroLdr = document.getElementById("heroLdr");
+    const heroText = document.getElementById("heroText");
+    const sunIcon = document.getElementById("sunIcon");
+
+    function updateSimulator(){
+      const l = Number(light.value);
+      const t = Number(temp.value);
+      const goal = Number(target.value);
+
+      lightValue.textContent = l;
+      tempValue.textContent = t;
+      targetValue.textContent = goal;
+      poolTemp.textContent = t + "°C";
+      ldrState.textContent = l + "%";
+      heroLdr.textContent = l + "%";
+
+      if(l >= 70){
+        heroText.textContent = "Alta luminosidade";
+        sunIcon.textContent = "☀️";
+      } else if(l >= 35){
+        heroText.textContent = "Luminosidade média";
+        sunIcon.textContent = "🌤️";
+      } else {
+        heroText.textContent = "Baixa luminosidade";
+        sunIcon.textContent = "🌙";
+      }
+
+      status.className = "status";
+
+      if(t >= goal){
+        actuator.textContent = "DESLIGADO";
+        status.textContent = "Temperatura atingida: o aquecimento pode ser desligado para evitar gasto desnecessário.";
+      } else if(l < 35){
+        actuator.textContent = "AGUARDANDO";
+        status.classList.add("alert");
+        status.textContent = "Pouca luz: o sistema pode aguardar melhores condições solares ou usar uma fonte auxiliar.";
+      } else if(l < 70){
+        actuator.textContent = "MODERADO";
+        status.classList.add("warning");
+        status.textContent = "Luminosidade média: o controlador pode manter o sistema em funcionamento moderado.";
+      } else {
+        actuator.textContent = "AQUECENDO";
+        status.textContent = "Boa luminosidade: o sistema pode aproveitar a energia solar para aquecer a piscina.";
+      }
+    }
+
+    [light,temp,target].forEach(el => el.addEventListener("input", updateSimulator));
+    updateSimulator();
+
+    // Acessibilidade: tamanho do texto
+    let fontScale = 1;
+    document.getElementById("fontUp").addEventListener("click", () => {
+      fontScale = Math.min(1.25, fontScale + 0.05);
+      document.documentElement.style.fontSize = (16 * fontScale) + "px";
+    });
+    document.getElementById("fontDown").addEventListener("click", () => {
+      fontScale = Math.max(0.9, fontScale - 0.05);
+      document.documentElement.style.fontSize = (16 * fontScale) + "px";
+    });
+    document.getElementById("contrast").addEventListener("click", () => {
+      document.body.classList.toggle("high-contrast");
+    });
+
+    // Botão voltar ao topo
+    const topBtn = document.getElementById("topBtn");
+    window.addEventListener("scroll", () => {
+      topBtn.classList.toggle("show", window.scrollY > 500);
+    });
+    topBtn.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
+  </script>
+</body>
+</html>
 
